@@ -1,5 +1,9 @@
 # pkgslog
 
+[![Build](https://github.com/reugn/pkgslog/actions/workflows/build.yml/badge.svg)](https://github.com/reugn/pkgslog/actions/workflows/build.yml)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/reugn/pkgslog)](https://pkg.go.dev/github.com/reugn/pkgslog)
+[![Go Report Card](https://goreportcard.com/badge/github.com/reugn/pkgslog)](https://goreportcard.com/report/github.com/reugn/pkgslog)
+
 A package level structured log handler for `log/slog`.  
 `pkgslog` adds the ability to set minimum log level requirement per package.
 
