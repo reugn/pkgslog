@@ -1,0 +1,31 @@
+run:
+  timeout: 30s
+
+linters:
+  disable-all: true
+  enable:
+    - dupl
+    - errcheck
+    - exportloopref
+    - funlen
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    # - gosimple
+    # - govet
+    - ineffassign
+    - lll
+    - misspell
+    - prealloc
+    - revive
+    # - staticcheck
+    - unconvert
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        - errcheck
