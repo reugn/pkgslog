@@ -2,7 +2,6 @@ package pkgslog
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"runtime"
 	"strings"
@@ -10,8 +9,9 @@ import (
 
 // A PackageHandler represents the package level structured log handler.
 type PackageHandler struct {
-	handler  slog.Handler
-	packages map[string]slog.Level
+	handler     slog.Handler
+	packages    map[string]slog.Level
+	minPkgLevel *slog.Level
 }
 
 var _ slog.Handler = &PackageHandler{}
@@ -30,23 +30,30 @@ func NewPackageHandler(h slog.Handler, packages map[string]slog.Level) *PackageH
 	if ph, ok := h.(*PackageHandler); ok {
 		h = ph.handler
 	}
-	return &PackageHandler{h, packages}
+	var minPkgLevel *slog.Level
+	for _, pkgLevel := range packages {
+		if minPkgLevel == nil || pkgLevel < *minPkgLevel {
+			level := pkgLevel
+			minPkgLevel = &level
+		}
+	}
+	return &PackageHandler{
+		handler:     h,
+		packages:    packages,
+		minPkgLevel: minPkgLevel,
+	}
 }
 
 // Enabled reports whether the handler handles records at the given level.
 func (h *PackageHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	// Scan our package log levels and see if we have any
-	// packages configured at the requested log level.
-	//
-	// If we do, we will be handling that log level
-	for _, pkgLevel := range h.packages {
-		if pkgLevel <= level {
-			return true
-		}
+	// Check if there are any packages configured at the requested log level.
+	// In this case, we will be handling that log level.
+	if h.minPkgLevel != nil && *h.minPkgLevel <= level {
+		return true
 	}
 
-	// Otherwise defer to upstream handler wether we should handle the
-	// log level or not
+	// Otherwise defer to an upstream handler whether we should handle the
+	// log level or not.
 	return h.handler.Enabled(ctx, level)
 }
 
@@ -100,18 +107,6 @@ func callerPackageName() string {
 		pkg = frame.Function[:packageUpperIndex]
 	}
 	return pkg
-}
-
-// printFrames is a runtime.CallersFrames debug method.
-func printFrames(pc []uintptr) {
-	frames := runtime.CallersFrames(pc)
-	for {
-		frame, more := frames.Next()
-		fmt.Println(frame.Function)
-		if !more {
-			break
-		}
-	}
 }
 
 // indexByteFrom returns the index of the first instance of c in s starting

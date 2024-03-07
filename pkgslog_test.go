@@ -23,6 +23,8 @@ func BenchmarkPkgSlog(b *testing.B) {
 		"github.com/reugn/pkgslog/pkg/inner": slog.LevelInfo,
 	}
 	logger := slog.New(pkgslog.NewPackageHandler(textHandler, packageMap))
+	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		logger.Info("here")
 	}
@@ -30,6 +32,8 @@ func BenchmarkPkgSlog(b *testing.B) {
 
 func BenchmarkSlog(b *testing.B) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		logger.Info("here")
 	}
@@ -116,7 +120,6 @@ func TestPkgSlogOverrideUpstreamHandlerLogLevel(t *testing.T) { //nolint:funlen
 
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-
 			writer := bufio.NewWriter(&buf)
 
 			textHandler := slog.NewJSONHandler(
@@ -136,7 +139,6 @@ func TestPkgSlogOverrideUpstreamHandlerLogLevel(t *testing.T) { //nolint:funlen
 					if !slices.Contains(tt.enabled, checkLevel) {
 						t.Fatal("expected " + checkLevel.String() + " level to be DISABLED")
 					}
-
 					continue
 				}
 
@@ -149,19 +151,15 @@ func TestPkgSlogOverrideUpstreamHandlerLogLevel(t *testing.T) { //nolint:funlen
 }
 
 func parseLogEntries(t *testing.T, output []byte) []map[string]any {
-	var (
-		entries []map[string]any
-		lines   = bytes.Split(output, []byte("\n"))
-	)
+	var entries []map[string]any
+	lines := bytes.Split(output, []byte("\n"))
 
 	for i := 0; i < len(lines)-1; i++ { // last one is empty
 		line := lines[i]
-
 		var entry map[string]any
 		if err := json.Unmarshal(line, &entry); err != nil {
 			t.Error(err)
 		}
-
 		entries = append(entries, entry)
 	}
 
