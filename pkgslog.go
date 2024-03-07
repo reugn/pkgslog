@@ -3,10 +3,9 @@ package pkgslog
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"runtime"
 	"strings"
-
-	"log/slog"
 )
 
 // A PackageHandler represents the package level structured log handler.
@@ -36,6 +35,18 @@ func NewPackageHandler(h slog.Handler, packages map[string]slog.Level) *PackageH
 
 // Enabled reports whether the handler handles records at the given level.
 func (h *PackageHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	// Scan our package log levels and see if we have any
+	// packages configured at the requested log level.
+	//
+	// If we do, we will be handling that log level
+	for _, pkgLevel := range h.packages {
+		if pkgLevel <= level {
+			return true
+		}
+	}
+
+	// Otherwise defer to upstream handler wether we should handle the
+	// log level or not
 	return h.handler.Enabled(ctx, level)
 }
 
@@ -45,11 +56,13 @@ func (h *PackageHandler) Enabled(ctx context.Context, level slog.Level) bool {
 // It will only be called when Enabled returns true.
 func (h *PackageHandler) Handle(ctx context.Context, r slog.Record) error {
 	pkg := callerPackageName()
+
 	if configuredLevel, ok := h.packages[pkg]; ok {
 		if configuredLevel > r.Level {
 			return nil // discard the log record
 		}
 	}
+
 	return h.handler.Handle(ctx, r)
 }
 
