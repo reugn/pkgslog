@@ -5,10 +5,10 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/reugn/pkgslog)](https://goreportcard.com/report/github.com/reugn/pkgslog)
 [![codecov](https://codecov.io/gh/reugn/pkgslog/branch/main/graph/badge.svg)](https://codecov.io/gh/reugn/pkgslog)
 
-A package level structured log handler for `log/slog`.  
-`pkgslog` adds the ability to set minimum log level requirement per package.
+A structured log handler for `log/slog` that can be configured at the package level.  
+`pkgslog` allows you to set the minimum log level requirement for each package in your application.
 
-## Example
+## Usage Example
 
 ```go
 textHandler := slog.NewTextHandler(os.Stdout, nil)
@@ -20,15 +20,13 @@ packageMap := map[string]slog.Level{
 logger := slog.New(pkgslog.NewPackageHandler(textHandler, packageMap))
 ```
 
-## Benchmarking
+## Benchmarks
 
 Benchmark results compared to the standard `slog.TextHandler`
 
 ```
-BenchmarkPkgSlog
-BenchmarkPkgSlog-16       437230              2421 ns/op             232 B/op          2 allocs/op
-BenchmarkSlog
-BenchmarkSlog-16         1000000              1004 ns/op               0 B/op          0 allocs/op
+BenchmarkPkgSlog-16       590906              2029 ns/op             232 B/op          2 allocs/op
+BenchmarkSlog-16         1733892               701.6 ns/op             0 B/op          0 allocs/op
 ```
 
 ## License
